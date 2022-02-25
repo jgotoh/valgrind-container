@@ -4,6 +4,7 @@ and if succesfully installed it may not run properly or may not run at all.
 
 A workaround for this is to run Valgrind in a Linux container. Some extra work is required, such as compilation for the container's platform,
 but what you do get is a properly running Valgrind.
+
 ### Usage
 First, start the container so that your source code is bind mounted in the container,
 and also an interactive session is started:
@@ -71,3 +72,42 @@ g++ -o leak leak.o
 ==19== For counts of detected and suppressed errors, rerun with: -v
 ==19== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
 ```
+
+### Tips to using Valgrind with a CMake project
+
+To build the Dockerfile yourself and set the image's tag to valgrind, run this:
+```sh
+docker build -t valgrind .
+```
+
+Cd into you CMake project.
+Start an interactive shell session in the valgrind image, mounting your sources:
+
+```sh
+docker run -tiv $PWD:/valgrind valgrind
+```
+
+We want to compile the project in docker using an out-of-source build (use an out-of-source build normally on MacOS, too!).
+This avoids conflating generated files in the build process required for Valgrind with the files we generate in MacOS.
+Take care to also use different binary output directories for MacOS/valgrind by setting `CMAKE_LIBRARY_OUTPUT_DIRECTORY` and `CMAKE_RUNTIME_OUTPUT_DIRECTORY` in your `CMakeLists.txt`.
+
+``` 
+# this will create the BIN_DIR flag controlling your output directory with the default directory being `bin`
+set(BIN_DIR "bin" CACHE STRING "Binaries directory")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/${BIN_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/${BIN_DIR})
+```
+
+```sh
+mkdir cmake-valgrind
+cmake .. -DBIN_DIR=bin-valgrind
+```
+
+Afterwards just run `make` to build the project.
+To run memory leak detection on your binary, you can run:
+
+``` sh
+valgrind --leak-check=full --track-origins=yes bin-valgrind/test
+```
+
+
