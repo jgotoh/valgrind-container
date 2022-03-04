@@ -85,7 +85,7 @@ To build the Dockerfile yourself and set the image's tag to valgrind, run this:
 docker build -t valgrind .
 ```
 
-Cd into you CMake project.
+Cd into your CMake project.
 Start an interactive shell session in a container using valgrind image, mounting your sources:
 
 ```sh
