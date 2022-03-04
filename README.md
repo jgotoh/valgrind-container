@@ -1,3 +1,8 @@
+## Changes in this fork
+
+- added instructions on how to integrate this in a CMake project, see [Using Valgrind with a CMake project](#using-valgrind-with-a-cmake-project)
+- for instructions on how to use docker-sync for faster compilations, see [Docker-Sync](#docker-sync)
+
 ## Run Valgrind in a container
 [Valgrind](http://valgrind.org/) may be difficult if not impossible to install on macOS (X86/Darwin (> 10.10, 10.11), AMD64/Darwin (> 10.10, 10.11)), 
 and if succesfully installed it may not run properly or may not run at all.
@@ -73,7 +78,7 @@ g++ -o leak leak.o
 ==19== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
 ```
 
-### Tips to using Valgrind with a CMake project
+### Using Valgrind with a CMake project
 
 To build the Dockerfile yourself and set the image's tag to valgrind, run this:
 ```sh
@@ -81,7 +86,7 @@ docker build -t valgrind .
 ```
 
 Cd into you CMake project.
-Start an interactive shell session in the valgrind image, mounting your sources:
+Start an interactive shell session in a container using valgrind image, mounting your sources:
 
 ```sh
 docker run -tiv $PWD:/valgrind valgrind
@@ -110,4 +115,28 @@ To run memory leak detection on your binary, you can run:
 valgrind --leak-check=full --track-origins=yes bin-valgrind/test
 ```
 
+### Docker-Sync
+
+This project should be used with [docker-sync](https://docker-sync.readthedocs.io/en/latest/) because using Docker on MacOS is incredibly slow.
+Install it, create a `docker-sync.yml` in your CMake project.
+A simple `docker-sync.yml` might look like this:
+
+``` yaml
+version: "2"
+syncs:
+  your-app-osx-sync:
+    src: './'
+    sync_excludes: ['dirs-without-sync']
+    sync_strategy: 'unison'
+```
+
+For explanation of the contents consult the official [docs](https://docker-sync.readthedocs.io/en/latest/getting-started/configuration.html).
+
+Start docker-sync via `docker-sync start` in your project.
+This creates a volume called `your-app-osx-sync`.
+You can now run a shell in your valgrind image using your synchronized volume:
+
+```sh
+docker run -tiv valgrind-osx-sync:/valgrind:nocopy valgrind
+```
 
