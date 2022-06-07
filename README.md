@@ -126,11 +126,14 @@ version: "2"
 syncs:
   your-app-osx-sync:
     src: './'
-    sync_excludes: ['dirs-without-sync']
+    sync_excludes: ['cmake-valgrind', 'cmake']
     sync_strategy: 'unison'
 ```
 
 For explanation of the contents consult the official [docs](https://docker-sync.readthedocs.io/en/latest/getting-started/configuration.html).
+By using `sync_excludes: ['cmake-valgrind', 'cmake']`, we exclude intermediate cmake build files from the sync.
+This will lead to a huge speedup during compilation.
+Add every directory that will contain build files, e.g. CLion will put its files in `cmake-build-debug` by default.
 
 Start docker-sync via `docker-sync start` in your project.
 This creates a volume called `your-app-osx-sync`.
