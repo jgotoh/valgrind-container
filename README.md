@@ -140,6 +140,26 @@ This creates a volume called `your-app-osx-sync`.
 You can now run a shell in your valgrind image using your synchronized volume:
 
 ```sh
-docker run -tiv valgrind-osx-sync:/valgrind:nocopy valgrind
+docker run --rm -tiv valgrind-osx-sync:/valgrind:nocopy valgrind
 ```
 
+### Docker-Sync in Docker Compose
+
+You can also integrate your docker-sync volume in a Docker Compose project.
+Have a look at this `docker-compose.yml`:
+
+```
+version: '3.8'
+services:
+  your-app:
+    image: valgrind
+    volumes:
+      - valgrind-osx-sync:/valgrind:nocopy
+
+volumes:
+  valgrind-osx-sync:
+    external: true # is provided by docker-sync
+```
+
+You can now run an interactive shell in the valgrind container with the following command:
+`docker-compose run --rm your-app`
